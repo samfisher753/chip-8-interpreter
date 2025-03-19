@@ -36,7 +36,7 @@ class Memory {
   }
 
   read(address: number): number {
-    return this.memory[address];
+    return (this.memory[address] << 8) + this.memory[address+1];
   }
 
 }
