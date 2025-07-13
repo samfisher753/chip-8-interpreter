@@ -1,15 +1,17 @@
 import Cpu from "./Cpu";
 import Memory from "./Memory";
+import Screen from "./Screen";
 
 class Chip8Interpreter {
 
   cpu: Cpu;
   memory: Memory;
+  screen: Screen;
 
-  constructor() {
-    this.cpu = new Cpu();
+  constructor(canvas: HTMLCanvasElement) {
     this.memory = new Memory();
-    this.cpu.setMemory(this.memory);
+    this.screen = new Screen(canvas);
+    this.cpu = new Cpu(this.memory, this.screen);
   }
 
   loadProgram(program: Uint8Array) {

@@ -1,6 +1,7 @@
 
 export type DecodedInstruction = {
     instruction: number;
+    category: number;
     x: number;
     y: number;
     n: number;

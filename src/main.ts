@@ -1,6 +1,7 @@
 import Chip8Interpreter from "./models/Chip8Interpreter";
 
-const chip8 = new Chip8Interpreter();
+const screen = document.getElementById('screen') as HTMLCanvasElement;
+const chip8 = new Chip8Interpreter(screen);
 const fileInput = document.getElementById('file') as HTMLInputElement;
 let file: File | null = null;
 

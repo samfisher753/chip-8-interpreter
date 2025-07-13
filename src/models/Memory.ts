@@ -39,6 +39,10 @@ class Memory {
     return (this.memory[address] << 8) + this.memory[address+1];
   }
 
+  readByte(address: number): number {
+    return this.memory[address];
+  }
+
 }
 
 export default Memory;
