@@ -16,6 +16,8 @@ class Screen {
 
     clear() {
         this.pixel = Array.from({ length: SCREEN_HEIGHT }, () => Array(SCREEN_WIDTH).fill(false));
+        const ctx = this.canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     draw() {

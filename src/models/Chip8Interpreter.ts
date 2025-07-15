@@ -4,23 +4,36 @@ import Screen from "./Screen";
 
 class Chip8Interpreter {
 
-  cpu: Cpu;
-  memory: Memory;
+  cpu: Cpu | null = null;
+  memory: Memory | null = null;
   screen: Screen;
 
+  isRunning: boolean = false;
+
   constructor(canvas: HTMLCanvasElement) {
-    this.memory = new Memory();
     this.screen = new Screen(canvas);
+  }
+
+  initialize() {
+    this.isRunning = true;
+    this.memory = new Memory();
     this.cpu = new Cpu(this.memory, this.screen);
+    this.screen!.clear();
   }
 
   loadProgram(program: Uint8Array) {
-    this.memory.loadProgram(program);
-    this.cpu.start();
+    this.stop();
+    this.initialize();
+    this.memory!.loadProgram(program);
+    this.cpu!.start();
   }
 
   stop() {
-    this.cpu.stop();
+    if (this.isRunning) {
+      this.cpu!.stop();
+      this.screen!.clear();
+      this.isRunning = false;
+    }
   }
 
 }

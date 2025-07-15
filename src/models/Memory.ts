@@ -1,46 +1,44 @@
-const font = [
-  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-  0x20, 0x60, 0x20, 0x20, 0x70, // 1
-  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-];
+import { FONT, FONT_BASE_ADDRESS, MEMORY_SIZE, PROGRAM_START_ADDRESS } from "../consts/Consts";
 
 class Memory {
 
   memory: Uint8Array;
 
   constructor() {
-    this.memory = new Uint8Array(4096);
+    this.memory = new Uint8Array(MEMORY_SIZE);
 
-    for (let i = 0; i < 80; ++i) {
-      this.memory[0x050 + i] = font[i];
+    for (let i = 0; i < FONT.length; ++i) {
+      this.memory[FONT_BASE_ADDRESS + i] = FONT[i];
     }
   }
 
   loadProgram(program: Uint8Array) {
     for (let i = 0; i < program.length; ++i) {
-      this.memory[0x200 + i] = program[i];
+      this.checkAddress(PROGRAM_START_ADDRESS + i);
+      this.memory[PROGRAM_START_ADDRESS + i] = program[i];
     }
   }
 
   read(address: number): number {
+    this.checkAddress(address);
+    this.checkAddress(address+1);
     return (this.memory[address] << 8) + this.memory[address+1];
   }
 
   readByte(address: number): number {
+    this.checkAddress(address);
     return this.memory[address];
+  }
+
+  writeByte(address: number, value: number) {
+    this.checkAddress(address);
+    this.memory[address] = value & 0xFF; // Ensure value is a byte
+  }
+
+  private checkAddress(address: number) {
+    if (address < 0 || address >= MEMORY_SIZE) {
+      throw new Error(`Memory access out of bounds: ${address}`);
+    }
   }
 
 }
