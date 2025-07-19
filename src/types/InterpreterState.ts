@@ -1,0 +1,1 @@
+export type InterpreterState = "STOPPED" | "RUNNING" | "PAUSED";

@@ -1,6 +1,6 @@
 import { CPU_IPS, FONT_BASE_ADDRESS, PROGRAM_START_ADDRESS, SCREEN_HEIGHT, SCREEN_WIDTH, TIMERS_HZS } from "../consts/Consts";
 import { beep, getFirstKeyDownValue, isKeyDown } from "../utils/Utils";
-import { DecodedInstruction } from "../types/DecodedInstruction";
+import type { DecodedInstruction } from "../types/DecodedInstruction";
 import Memory from "./Memory";
 import Screen from "./Screen";
 class Cpu {
@@ -41,6 +41,19 @@ class Cpu {
     }
     if (this.soundTimerIntervalId) {
       clearInterval(this.soundTimerIntervalId);
+    }
+  }
+
+  public pause() {
+    if (this.cpuIntervalId) {
+      clearInterval(this.cpuIntervalId);
+      this.cpuIntervalId = null;
+    }
+  }
+
+  public resume() {
+    if (!this.cpuIntervalId) {
+      this.start();
     }
   }
 
@@ -205,7 +218,7 @@ class Cpu {
 
       case 0xD: // DXYN
         // Draw sprite at coordinate (Vx, Vy) with height N
-        console.log(`Draw sprite at (${this.v[instruction.x]}, ${this.v[instruction.y]}) with height ${instruction.n}`);
+        // console.log(`Draw sprite at (${this.v[instruction.x]}, ${this.v[instruction.y]}) with height ${instruction.n}`);
         this.draw(instruction);
         break;
 

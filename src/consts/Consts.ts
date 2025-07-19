@@ -1,4 +1,5 @@
-import { Key } from "../types/Key";
+import type { Key } from "../types/Key";
+
 
 export const SCREEN_WIDTH = 64;
 export const SCREEN_HEIGHT = 32;

@@ -14,25 +14,37 @@ class Chip8Interpreter {
     this.screen = new Screen(canvas);
   }
 
-  initialize() {
+  private initialize() {
     this.isRunning = true;
     this.memory = new Memory();
     this.cpu = new Cpu(this.memory, this.screen);
     this.screen!.clear();
   }
 
-  loadProgram(program: Uint8Array) {
+  public loadProgram(program: Uint8Array) {
     this.stop();
     this.initialize();
     this.memory!.loadProgram(program);
     this.cpu!.start();
   }
 
-  stop() {
+  public stop() {
     if (this.isRunning) {
       this.cpu!.stop();
       this.screen!.clear();
       this.isRunning = false;
+    }
+  }
+
+  public pause() {
+    if (this.isRunning) {
+      this.cpu!.pause();
+    }
+  }
+
+  public resume() {
+    if (this.isRunning) {
+      this.cpu!.resume();
     }
   }
 
