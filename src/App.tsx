@@ -45,7 +45,7 @@ const App = () => {
   }
 
   async function getRomFileFromServer(rom: any): Promise<File> {
-    const url = `/roms/${rom.fileName}`;
+    const url = `./roms/${rom.fileName}`;
     const response = await fetch(url);
 
     if (!response.ok) {

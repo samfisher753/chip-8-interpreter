@@ -8,4 +8,8 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  base: '/chip-8-interpreter/',
+  build: {
+    outDir: 'docs',
+  },
 })
