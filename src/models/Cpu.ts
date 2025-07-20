@@ -11,49 +11,111 @@ class Cpu {
   stack: number[] = [];
   delayTimer: number = 0;
   soundTimer: number = 0;
+
+  lastCycleTime: number = 0;
+  msPerInstruction: number = 0;
+  accumulatedCpuTime: number = 0;
+
+  mustRenderFrame: boolean = false;
   
   memory: Memory;
   screen: Screen;
 
-  cpuIntervalId: number | null = null;
+  animationFrameId: number | null = null;
   delayTimerIntervalId: number | null = null;
   soundTimerIntervalId: number | null = null;
 
   constructor(memory: Memory, screen: Screen) {
     this.memory = memory;
     this.screen = screen;
+
+    this.msPerInstruction = 1000 / CPU_IPS;
   }
 
   public start() {
-    this.cpuIntervalId = setInterval(() => {
-      const instruction: number = this.fetch();
-      const decodedInstruction: DecodedInstruction = this.decode(instruction);
-      this.execute(decodedInstruction);
-    }, Math.floor(1000 / CPU_IPS));
+    this.lastCycleTime = performance.now();
+    this.gameLoop(this.lastCycleTime);
+    this.setDelayTimerIfActive();
+    this.setSoundTimerIfActive();
+  }
+
+  private gameLoop = (currentTime: number): void => {
+    this.mustRenderFrame = false;
+    const cpuDeltaTime = currentTime - this.lastCycleTime;
+    this.lastCycleTime = currentTime;
+    this.accumulatedCpuTime += cpuDeltaTime;
+
+    while (this.accumulatedCpuTime >= this.msPerInstruction) {
+      this.emulateCycle();
+      this.accumulatedCpuTime -= this.msPerInstruction;
+    }
+
+    if (this.mustRenderFrame) {
+      this.screen.drawCanvas();
+    }
+
+    this.animationFrameId = requestAnimationFrame(this.gameLoop);
+  }
+
+  private emulateCycle(): void {
+    const instruction: number = this.fetch();
+    const decodedInstruction: DecodedInstruction = this.decode(instruction);
+    this.execute(decodedInstruction);
   }
 
   public stop() {
-    if (this.cpuIntervalId) {
-      clearInterval(this.cpuIntervalId);
-    }
-    if (this.delayTimerIntervalId) {
-      clearInterval(this.delayTimerIntervalId);
-    }
-    if (this.soundTimerIntervalId) {
-      clearInterval(this.soundTimerIntervalId);
-    }
+    this.pause();
+    this.screen.clear();
+    this.screen.drawCanvas();
+    this.delayTimer = 0;
+    this.soundTimer = 0;
   }
 
   public pause() {
-    if (this.cpuIntervalId) {
-      clearInterval(this.cpuIntervalId);
-      this.cpuIntervalId = null;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    if (this.delayTimerIntervalId !== null) {
+      clearInterval(this.delayTimerIntervalId);
+      this.delayTimerIntervalId = null;
+    }
+    if (this.soundTimerIntervalId !== null) {
+      clearInterval(this.soundTimerIntervalId);
+      this.soundTimerIntervalId = null;
     }
   }
 
   public resume() {
-    if (!this.cpuIntervalId) {
+    if (this.animationFrameId === null) {
       this.start();
+    }
+  }
+
+  private setDelayTimerIfActive(): void {
+    if (this.delayTimer > 0 && !this.delayTimerIntervalId) {
+      this.delayTimerIntervalId = setInterval(() => {
+        if (this.delayTimer > 0) {
+          this.delayTimer--;
+        } else {
+          clearInterval(this.delayTimerIntervalId!);
+          this.delayTimerIntervalId = null;
+        }
+      }, Math.floor(1000 / TIMERS_HZS));
+    }
+  }
+
+  private setSoundTimerIfActive(): void {
+    if (this.soundTimer > 0 && !this.soundTimerIntervalId) {
+      this.soundTimerIntervalId = setInterval(() => {
+        if (this.soundTimer > 0) {
+          beep();
+          this.soundTimer--;
+        } else {
+          clearInterval(this.soundTimerIntervalId!);
+          this.soundTimerIntervalId = null;
+        }
+      }, Math.floor(1000 / TIMERS_HZS));
     }
   }
 
@@ -85,6 +147,7 @@ class Cpu {
           case 0x0E0:
             // Clear the display
             this.screen.clear();
+            this.mustRenderFrame = true;
             break;
           case 0x0EE:
             // Return from subroutine
@@ -244,30 +307,11 @@ class Cpu {
             break;
           case 0x15: // Set the delay timer to Vx
             this.delayTimer = this.v[instruction.x];
-            if (this.delayTimer > 0 && !this.delayTimerIntervalId) {
-              this.delayTimerIntervalId = setInterval(() => {
-                if (this.delayTimer > 0) {
-                  this.delayTimer--;
-                } else {
-                  clearInterval(this.delayTimerIntervalId!);
-                  this.delayTimerIntervalId = null;
-                }
-              }, Math.floor(1000 / TIMERS_HZS));
-            }
+            this.setDelayTimerIfActive();
             break;
           case 0x18: // Set the sound timer to Vx
             this.soundTimer = this.v[instruction.x];
-            if (this.soundTimer > 0 && !this.soundTimerIntervalId) {
-              this.soundTimerIntervalId = setInterval(() => {
-                if (this.soundTimer > 0) {
-                  beep();
-                  this.soundTimer--;
-                } else {
-                  clearInterval(this.soundTimerIntervalId!);
-                  this.soundTimerIntervalId = null;
-                }
-              }, Math.floor(1000 / TIMERS_HZS));
-            }
+            this.setSoundTimerIfActive();
             break;
           case 0x1E: // Add Vx to index register
             this.v[0xF] = (this.index + this.v[instruction.x]) > 0xFFF ? 1 : 0; // Set VF to 1 if overflow
@@ -338,7 +382,7 @@ class Cpu {
       }
     }
 
-    this.screen.draw();
+    this.mustRenderFrame = true;
   }
 
 }

@@ -31,7 +31,6 @@ class Chip8Interpreter {
   public stop() {
     if (this.isRunning) {
       this.cpu!.stop();
-      this.screen!.clear();
       this.isRunning = false;
     }
   }

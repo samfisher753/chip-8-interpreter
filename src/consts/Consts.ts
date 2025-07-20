@@ -4,7 +4,7 @@ import type { Key } from "../types/Key";
 export const SCREEN_WIDTH = 64;
 export const SCREEN_HEIGHT = 32;
 export const PIXEL_SIZE = 10;
-export const CPU_IPS = 500;
+export const CPU_IPS = 700;
 export const MEMORY_SIZE = 4096;
 export const TIMERS_HZS = 60;
 export const FONT_BASE_ADDRESS = 0x050;
